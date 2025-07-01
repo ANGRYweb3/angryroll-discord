@@ -34,10 +34,10 @@ async function sendDiscordNotification(title, description, color = 0x00ff00, fie
     timestamp: new Date().toISOString(),
     footer: {
       text: 'Angryroll Gaming Platform',
-      icon_url: 'https://i.ibb.co/4ZrYNdfK/Group-5641.png'
+      icon_url: 'https://i.ibb.co/jP4k6Bzy/Website-Logo-Text-Valo2-1.png'
     },
     thumbnail: {
-      url: 'https://i.ibb.co/jP4k6Bzy/Website-Logo-Text-Valo2-1.png'
+      url: 'https://i.ibb.co/4ZrYNdfK/Group-5641.png'
     }
   };
 
@@ -61,7 +61,7 @@ async function sendDiscordNotification(title, description, color = 0x00ff00, fie
  */
 async function notifyNewCoinflipGame(gameData) {
   const title = '🎮 New Coinflip Game Created!';
-  const description = `🎯 **Game ID ${gameData.id}** is ready to challenge!\n\n🎮 **[🚀 PLAY NOW - JOIN THE GAME!](https://angryroll.com/coinflip)**`;
+  const description = `🎯 **Game ID ${gameData.id}** is ready to challenge!\n\n🎮 **[🚀 PLAY NOW - JOIN THE GAME!](https://angryroll.fun/coinflip)**`;
   
   const fields = [
     {
@@ -91,7 +91,7 @@ async function notifyNewCoinflipGame(gameData) {
     },
     {
       name: '🎯 Challenge This Game',
-      value: '**[🎮 JOIN BATTLE →](https://angryroll.com/coinflip)**',
+      value: '**[🎮 JOIN BATTLE →](https://angryroll.fun/coinflip)**',
       inline: true
     }
   ];
@@ -181,7 +181,7 @@ async function notifyJackpotEntry(participantData, currentPot, participantCount)
     },
     {
       name: '🔗 Join Jackpot',
-      value: '[Play Now](https://angryroll.com/jackpot)',
+      value: '[Play Now](https://angryroll.fun/jackpot)',
       inline: true
     }
   ];
