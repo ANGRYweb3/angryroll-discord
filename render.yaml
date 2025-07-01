@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: angryroll-discord-service
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DISCORD_WEBHOOK_URL_GAMES
+        sync: false
+      - key: DISCORD_WEBHOOK_URL_REVENUE
+        sync: false 
