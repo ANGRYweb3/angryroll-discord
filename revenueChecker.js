@@ -1,10 +1,10 @@
 const axios = require('axios');
 const discordNotifier = require('./discordNotifier');
 
-// Wallet addresses for monitoring
+// Wallet addresses for monitoring (use environment variables if available)
 const WALLETS = {
-  coinflip: '0.0.9276566',
-  jackpot: '0.0.9314288'
+  coinflip: process.env.COINFLIP_WALLET_ID || '0.0.9276566',
+  jackpot: process.env.JACKPOT_WALLET_ID || '0.0.9314288'
 };
 
 // Store last known balances to detect changes (in memory)
@@ -22,10 +22,13 @@ let lastBalances = {
  */
 async function fetchWalletBalance(accountId) {
   try {
-    const response = await axios.get(
-      `https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/${accountId}`,
-      { timeout: 10000 }
-    );
+    // Use environment variable for mirror node API, default to testnet
+    const MIRROR_NODE_API = process.env.MIRROR_NODE_API_BASE || 'https://testnet.mirrornode.hedera.com/api/v1';
+    const apiUrl = `${MIRROR_NODE_API}/accounts/${accountId}`;
+    
+    console.log(`[Revenue Checker] Fetching balance for ${accountId} from ${apiUrl}`);
+    
+    const response = await axios.get(apiUrl, { timeout: 10000 });
     
     if (response.data && response.data.balance) {
       // Convert from tinybars to HBAR (1 HBAR = 100,000,000 tinybars)
