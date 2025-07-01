@@ -34,10 +34,10 @@ async function sendDiscordNotification(title, description, color = 0x00ff00, fie
     timestamp: new Date().toISOString(),
     footer: {
       text: 'Angryroll Gaming Platform',
-      icon_url: 'https://i.ibb.co/S8V1Rjk/Group-5627-1.png'
+      icon_url: 'https://i.ibb.co/4ZrYNdfK/Group-5641.png'
     },
     thumbnail: {
-      url: 'https://i.ibb.co/9Hc6BW0X/Angryrolllogo2.png'
+      url: 'https://i.ibb.co/jP4k6Bzy/Website-Logo-Text-Valo2-1.png'
     }
   };
 
