@@ -61,7 +61,7 @@ async function sendDiscordNotification(title, description, color = 0x00ff00, fie
  */
 async function notifyNewCoinflipGame(gameData) {
   const title = '🎮 New Coinflip Game Created!';
-  const description = `A new coinflip game has been created and is waiting for players to join.`;
+  const description = `🎯 **Game ID ${gameData.id}** is ready to challenge!\n\n🎮 **[🚀 PLAY NOW - JOIN THE GAME!](https://angryroll.com/coinflip)**`;
   
   const fields = [
     {
@@ -81,17 +81,17 @@ async function notifyNewCoinflipGame(gameData) {
     },
     {
       name: '🪙 Creator Choice',
-      value: gameData.creatorChoice === 0 ? '**HEADS**' : '**TAILS**',
+      value: gameData.creatorChoice === 0 ? '**HEADS** 🪙' : '**TAILS** 🪙',
       inline: true
     },
     {
       name: '⏰ Status',
-      value: '🟢 Waiting for challenger',
+      value: '🟢 **Waiting for challenger**',
       inline: true
     },
     {
-      name: '🔗 Join Game',
-      value: '[Play Now](https://angryroll.com/coinflip)',
+      name: '🎯 Challenge This Game',
+      value: '**[🎮 JOIN BATTLE →](https://angryroll.com/coinflip)**',
       inline: true
     }
   ];
