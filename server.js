@@ -9,6 +9,37 @@ const revenueChecker = require('./revenueChecker');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Revenue check debouncing system
+const pendingRevenueChecks = new Set();
+
+/**
+ * Schedule revenue check with debouncing to prevent multiple checks
+ * @param {string} gameType - Type of game
+ * @param {number} delay - Delay in milliseconds
+ */
+function scheduleRevenueCheck(gameType, delay = 15000) {
+  const checkKey = `${gameType}-${Math.floor(Date.now() / 30000)}`; // Group by 30-second windows
+  
+  if (pendingRevenueChecks.has(checkKey)) {
+    console.log(`[Revenue] Revenue check already scheduled for ${gameType}, skipping duplicate`);
+    return;
+  }
+  
+  pendingRevenueChecks.add(checkKey);
+  
+  setTimeout(async () => {
+    try {
+      await revenueChecker.checkAndNotifyRevenue(gameType);
+    } catch (error) {
+      console.error(`[Revenue] Error in scheduled revenue check for ${gameType}:`, error.message);
+    } finally {
+      pendingRevenueChecks.delete(checkKey);
+    }
+  }, delay);
+  
+  console.log(`[Revenue] Scheduled revenue check for ${gameType} in ${delay}ms`);
+}
+
 // Middleware
 app.use(helmet());
 app.use(cors());
@@ -54,10 +85,8 @@ app.post('/notify/coinflip/settled', async (req, res) => {
   try {
     await discordNotifier.notifyCoinflipGameSettled(req.body);
     
-    // Check revenue after settlement
-    setTimeout(async () => {
-      await revenueChecker.checkAndNotifyRevenue('Coinflip');
-    }, 15000); // Wait 15 seconds for blockchain settlement
+    // Schedule revenue check with debouncing
+    scheduleRevenueCheck('Coinflip', 15000);
     
     res.json({ success: true, message: 'Coinflip settlement notification sent' });
   } catch (error) {
@@ -82,10 +111,8 @@ app.post('/notify/jackpot/winner', async (req, res) => {
   try {
     await discordNotifier.notifyJackpotWinner(req.body);
     
-    // Check revenue after winner selection
-    setTimeout(async () => {
-      await revenueChecker.checkAndNotifyRevenue('Jackpot');
-    }, 20000); // Wait 20 seconds for blockchain settlement
+    // Schedule revenue check with debouncing
+    scheduleRevenueCheck('Jackpot', 20000);
     
     res.json({ success: true, message: 'Jackpot winner notification sent' });
   } catch (error) {

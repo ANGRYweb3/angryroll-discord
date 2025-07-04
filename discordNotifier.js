@@ -4,6 +4,55 @@ const axios = require('axios');
 const DISCORD_WEBHOOK_URL_GAMES = process.env.DISCORD_WEBHOOK_URL_GAMES;
 const DISCORD_WEBHOOK_URL_REVENUE = process.env.DISCORD_WEBHOOK_URL_REVENUE;
 
+// Message deduplication system
+const sentMessages = new Map();
+const MESSAGE_DEDUP_WINDOW = 30000; // 30 seconds window to prevent duplicates
+
+/**
+ * Generate a unique key for message deduplication
+ * @param {string} title - Message title
+ * @param {string} type - Message type
+ * @param {Array} fields - Message fields
+ * @returns {string} Unique key
+ */
+function generateMessageKey(title, type, fields = []) {
+  // For revenue notifications, include timestamp to minute level (allow different minute notifications)
+  if (type === 'revenue') {
+    const minute = Math.floor(Date.now() / 60000); // Round to minute
+    return `${type}-${title}-${minute}`;
+  }
+  
+  // For game notifications, include relevant game data
+  const gameData = fields.find(f => f.name.includes('Game ID') || f.name.includes('Round ID'));
+  const gameId = gameData ? gameData.value : '';
+  return `${type}-${title}-${gameId}`;
+}
+
+/**
+ * Check if message was recently sent to prevent duplicates
+ * @param {string} messageKey - Unique message key
+ * @returns {boolean} True if message was recently sent
+ */
+function isDuplicateMessage(messageKey) {
+  const now = Date.now();
+  
+  // Clean old entries
+  for (const [key, timestamp] of sentMessages.entries()) {
+    if (now - timestamp > MESSAGE_DEDUP_WINDOW) {
+      sentMessages.delete(key);
+    }
+  }
+  
+  // Check if this message was recently sent
+  if (sentMessages.has(messageKey)) {
+    return true;
+  }
+  
+  // Mark this message as sent
+  sentMessages.set(messageKey, now);
+  return false;
+}
+
 /**
  * Send notification to Discord
  * @param {string} title - Notification title
@@ -13,6 +62,13 @@ const DISCORD_WEBHOOK_URL_REVENUE = process.env.DISCORD_WEBHOOK_URL_REVENUE;
  * @param {string} type - Notification type ('games' or 'revenue')
  */
 async function sendDiscordNotification(title, description, color = 0x00ff00, fields = [], type = 'games') {
+  // Check for duplicate messages
+  const messageKey = generateMessageKey(title, type, fields);
+  if (isDuplicateMessage(messageKey)) {
+    console.log(`[Discord] Skipping duplicate message: ${messageKey}`);
+    return { success: true, message: 'Duplicate message skipped' };
+  }
+
   let webhookUrl;
   
   if (type === 'revenue') {
@@ -45,12 +101,18 @@ async function sendDiscordNotification(title, description, color = 0x00ff00, fie
     await axios.post(webhookUrl, {
       embeds: [embed]
     }, {
-      timeout: 10000
+      timeout: 10000,
+      // Disable any automatic retries
+      'axios-retry': {
+        retries: 0
+      }
     });
     console.log(`[Discord] ${type.toUpperCase()} notification sent: ${title}`);
     return { success: true, message: 'Notification sent successfully' };
   } catch (error) {
     console.error(`[Discord] Failed to send ${type} notification:`, error.message);
+    // Remove from dedup cache if sending failed so it can be retried later
+    sentMessages.delete(messageKey);
     throw error;
   }
 }
